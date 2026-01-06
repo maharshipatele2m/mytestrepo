@@ -1,0 +1,128 @@
+{
+  "name": "Attendance Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        -64
+      ],
+      "id": "09e707fe-f845-41e6-9228-780ee31f4a01",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZEJSZhC0S84ZILbRPuTHFVvV7UOWq-wKqgyOOxo9xc",
+          "mode": "list",
+          "cachedResultName": "attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZEJSZhC0S84ZILbRPuTHFVvV7UOWq-wKqgyOOxo9xc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "monday",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZEJSZhC0S84ZILbRPuTHFVvV7UOWq-wKqgyOOxo9xc/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Absent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -400,
+        -64
+      ],
+      "id": "afdc6d03-b33b-44e5-b211-8390d6ef2b53",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "N1d2PPiBBPTFiPFm",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "cs.jdsofttech@gmail.com",
+        "toEmail": "m5dec4@gmail.com",
+        "subject": "Notification for absentees",
+        "emailFormat": "text",
+        "text": "=🚨 Absentees for 2026-01-05:\n\n{{ $items(\"Get row(s) in sheet\").map(item => `- ${item.json.Name}`).join('\\n') }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -64
+      ],
+      "id": "63ff9579-11af-4ab4-aee1-706c3008e05d",
+      "name": "Send email",
+      "webhookId": "f790524e-d1a5-426c-986b-b2f4506e1ab4",
+      "credentials": {
+        "smtp": {
+          "id": "YStvm03aLDoyMf9k",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "958264c9-a997-471f-a66f-0525fb1640cd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "36998a31aa063442d4b7e429f8497ae2b17c521106736638a3ef009285294eca"
+  },
+  "id": "k97o1BecgtbKH2zG",
+  "tags": []
+}
