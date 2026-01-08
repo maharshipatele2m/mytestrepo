@@ -1,0 +1,365 @@
+{
+  "name": "Airtable Records",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -80
+      ],
+      "id": "c080740c-c97c-41e9-8fde-a12f8123024d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    transcript: \"[00:05] John: Alright everyone, thanks for joining. Let’s get started with the product sync.\\n[00:22] Sarah: Today we need to review progress on the mobile app redesign and discuss next steps.\\n[00:45] Mike: The design team has completed the initial wireframes, but we still need feedback from engineering.\\n[01:10] John: Okay, let’s make sure engineering reviews the wireframes by Wednesday.\\n[01:32] Lisa: From the engineering side, we also need finalized API requirements before implementation.\\n[01:58] Sarah: I can work with the backend team and send the finalized API requirements by Thursday.\\n[02:20] Mike: We should also schedule a usability testing session once the prototype is ready.\\n[02:45] John: Good point. Let’s aim to schedule usability testing for early next week.\\n[03:05] Lisa: Another thing—we still haven’t updated the project timeline since the last sprint.\\n[03:28] Sarah: I’ll update the project timeline and share it with everyone by Friday.\\n[03:55] Mike: We also need to prepare a short demo for stakeholders.\\n[04:15] John: Yes, please prepare the demo slides and send them to me for review.\\n[04:40] Sarah: I’ll take ownership of the demo slides and send them by Monday.\\n[04:58] John: Great. Let’s recap action items before we close.\"\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        -80
+      ],
+      "id": "d3932a74-ad18-48e5-9f9c-cbb87ba7c0af",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcript = $json.transcript;\n\n// Remove timestamps like [00:12], [04:58], etc.\nconst cleanedTranscript = transcript.replace(/\\[\\d{2}:\\d{2}\\]/g, \"\").trim();\n\nreturn [\n  {\n    cleanedTranscript\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -80
+      ],
+      "id": "e92c58ad-3982-4780-83a1-e5f4e17c2168",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract all action items from the meeting transcript below.\n\nReturn ONLY a JSON array of strings.\nDo NOT include explanations, headings, or extra text.\n\nTranscript:\n{{ $json.cleanedTranscript }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        320,
+        -80
+      ],
+      "id": "65782355-e950-47b6-b4b8-4c475df8df62",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        192,
+        128
+      ],
+      "id": "9864da0e-7b7a-4f51-8cd5-d5e60d78ec5b",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "E2fMQ0w5GzWuhAw7",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.output;\n\n// If Groq returned a string, parse it\nif (typeof raw === 'string') {\n  raw = JSON.parse(raw);\n}\n\n// Now raw is guaranteed to be an array\nreturn raw.map(item => ({\n  actionItem: item\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -80
+      ],
+      "id": "c9172c91-9bd7-4ca8-a6f6-0c383d7a02ce",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        880,
+        -80
+      ],
+      "id": "566f04ed-9e56-45a5-ac63-7055103a3acb",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appydomlufUFdo7WD",
+          "mode": "list",
+          "cachedResultName": "Action Items",
+          "cachedResultUrl": "https://airtable.com/appydomlufUFdo7WD"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblnNBEEJyC3mNYfU",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://airtable.com/appydomlufUFdo7WD/tblnNBEEJyC3mNYfU"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Action Item": "= {{ $json.actionItem }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Action Item",
+              "displayName": "Action Item",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Assignee",
+              "displayName": "Assignee",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Todo",
+                  "value": "Todo"
+                },
+                {
+                  "name": "In progress",
+                  "value": "In progress"
+                },
+                {
+                  "name": "Done",
+                  "value": "Done"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1152,
+        -112
+      ],
+      "id": "e43c5f48-419a-4804-ba2e-0a7ac4425ef2",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "7sgbvlRLM9Kvq5Ez",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        192
+      ],
+      "id": "fbcaff62-2140-4246-8240-c94bff93dab3"
+    }
+  ],
+  "pinData": {
+    "Code in JavaScript1": [
+      {
+        "json": {
+          "cleanedTranscript": "John: Alright everyone, thanks for joining. Let’s get started with the product sync.\n Sarah: Today we need to review progress on the mobile app redesign and discuss next steps.\n Mike: The design team has completed the initial wireframes, but we still need feedback from engineering.\n John: Okay, let’s make sure engineering reviews the wireframes by Wednesday.\n Lisa: From the engineering side, we also need finalized API requirements before implementation.\n Sarah: I can work with the backend team and send the finalized API requirements by Thursday.\n Mike: We should also schedule a usability testing session once the prototype is ready.\n John: Good point. Let’s aim to schedule usability testing for early next week.\n Lisa: Another thing—we still haven’t updated the project timeline since the last sprint.\n Sarah: I’ll update the project timeline and share it with everyone by Friday.\n Mike: We also need to prepare a short demo for stakeholders.\n John: Yes, please prepare the demo slides and send them to me for review.\n Sarah: I’ll take ownership of the demo slides and send them by Monday.\n John: Great. Let’s recap action items before we close."
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        []
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "7cd5f7c9-03fd-4872-931a-45921c3f9b2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b1ca9918005731099e066654fcb25da53c11780867e34b52bc7e5c12e30de491"
+  },
+  "id": "akTBwPXkljfbvGCNjtENI",
+  "tags": []
+}
